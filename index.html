@@ -1,0 +1,69 @@
+
+
+<!DOCTYPE html>
+<html lang="pt-BR" class="bg-black text-white" x-data>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cadastro - KING999</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs" defer></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-950 text-white px-4" x-data="{ nome: '', senha: '', confirmar: '', celular: '', erro: '' }">
+
+  <div class="w-full max-w-md bg-gray-900 rounded-xl shadow-xl p-6 space-y-4 sm:p-8">
+    <div class="text-center">
+      <img src="img/logo.png" alt="Logo" class="mx-auto h-12 mb-4">
+      <h2 class="text-lg sm:text-xl font-bold">Cadastre-se e ganhe R$7.777</h2>
+      <p class="text-xs sm:text-sm text-gray-400">Convide outras pessoas e ganhe R$ 1 milhão</p>
+    </div>
+
+    <div class="flex justify-around mt-4 text-sm sm:text-base">
+      <span class="text-yellow-400 font-semibold border-b border-yellow-400 pb-1">📒 Registro</span>
+      <a href="#" class="text-gray-400">🔐 Login</a>
+    </div>
+
+    <!-- FORMULÁRIO -->
+    <div class="space-y-3">
+      <input type="text" x-model="nome" placeholder="*Nome de usuário" class="w-full px-4 py-2 bg-gray-800 rounded border border-gray-700 text-sm sm:text-base" />
+      <input type="password" x-model="senha" placeholder="*Senha" class="w-full px-4 py-2 bg-gray-800 rounded border border-gray-700 text-sm sm:text-base" />
+      <input type="password" x-model="confirmar" placeholder="*Confirme a senha" class="w-full px-4 py-2 bg-gray-800 rounded border border-gray-700 text-sm sm:text-base" />
+      <input type="tel" x-model="celular" placeholder="*Digite o número do celular" class="w-full px-4 py-2 bg-gray-800 rounded border border-gray-700 text-sm sm:text-base" />
+    </div>
+
+    <!-- ACEITE -->
+    <div class="text-xs sm:text-sm mt-3">
+      <label class="inline-flex items-center">
+        <input type="checkbox" required class="form-checkbox text-yellow-500" checked />
+        <span class="ml-2">Tenho 18 anos, li e concordo com <a href="#" class="text-yellow-400 underline">Acordo do Usuário</a></span>
+      </label>
+    </div>
+
+    <!-- ERRO -->
+    <template x-if="erro">
+      <p class="text-red-500 text-xs font-semibold sm:text-sm" x-text="erro"></p>
+    </template>
+
+    <!-- BOTÃO -->
+    <button @click="
+      if (!nome || !senha || !confirmar || !celular) {
+        erro = 'Preencha todos os campos obrigatórios!'
+      } else if (senha !== confirmar) {
+        erro = 'As senhas não coincidem!'
+      } else {
+        localStorage.setItem('user', JSON.stringify({ nome, celular }));
+        window.location.href = 'home.html';
+      }
+    " 
+    class="bg-yellow-400 hover:bg-yellow-500 text-black w-full py-2 rounded font-bold mt-2 text-sm sm:text-base">
+      Registro
+    </button>
+
+    <div class="text-center mt-2">
+      <a href="#" class="text-xs sm:text-sm text-yellow-400">Contactar o suporte</a>
+    </div>
+  </div>
+
+</body>
+</html>
