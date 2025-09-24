@@ -6,46 +6,133 @@
   <title>Home - KING999</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://unpkg.com/alpinejs"></script>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    .ripple {
+      position: relative;
+      overflow: hidden;
+    }
+    .ripple::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      width: 5px;
+      height: 5px;
+      background: rgba(255,255,255,0.6);
+      transform: scale(1);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .ripple.clicked::after {
+      animation: ripple-effect 0.6s ease-out;
+    }
+    @keyframes ripple-effect {
+      from { transform: scale(1); opacity: 0.7; }
+      to   { transform: scale(100); opacity: 0; }
+    }
+
+    /* ===== NEON COMPATÍVEL (box-shadow + faísca rodando) ===== */
+.neon{
+  position: relative;
+  overflow: visible;               /* deixa o brilho/faisca visível fora do card */
+  border-radius: 0.75rem;          /* combine com rounded-xl */
+}
+
+/* Glow/borda neon pulsando */
+.neon::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius: inherit;
+  pointer-events:none;
+  box-shadow:
+    0 0 0 2px rgba(255,213,74,.9) inset,
+    0 0 10px rgba(255,213,74,.45),
+    0 0 18px rgba(255,109,0,.35),
+    0 0 28px rgba(255,61,0,.25);
+  animation: neonPulse 3.2s ease-in-out infinite;
+  z-index:1;
+}
+@keyframes neonPulse{
+  0%,100%{
+    box-shadow:
+      0 0 0 2px rgba(255,213,74,.95) inset,
+      0 0 10px rgba(255,213,74,.55),
+      0 0 18px rgba(255,109,0,.40),
+      0 0 28px rgba(255,61,0,.30);
+  }
+  50%{
+    box-shadow:
+      0 0 0 2px rgba(255,213,74,.75) inset,
+      0 0 6px rgba(255,213,74,.35),
+      0 0 12px rgba(255,109,0,.28),
+      0 0 18px rgba(255,61,0,.22);
+  }
+}
+
+/* === Faísca que dá a volta no retângulo === */
+.neon::after{
+  /* variáveis pra não “errar” a borda */
+  --spark: 10px;   /* tamanho da bolinha */
+  --off:   6px;    /* distância da borda (ajuste fino) */
+
+  content:"";
+  position:absolute;
+  width:var(--spark); height:var(--spark);
+  border-radius:50%;
+  background: #fff;
+  filter: blur(0.3px);
+  box-shadow:
+    0 0 6px rgba(255,255,255,.95),
+    0 0 12px rgba(255,213,74,.85),
+    0 0 18px rgba(255,109,0,.6),
+    0 0 26px rgba(255,61,0,.45);
+  pointer-events:none;
+  z-index:2;
+
+  /* ponto inicial: topo-esquerda */
+  top:var(--off); left:var(--off);
+
+  animation: sparkLoop 2.6s linear infinite;
+}
+
+/* Caminho ao redor do card */
+@keyframes sparkLoop{
+  0%   { top:var(--off); left:var(--off); }
+  25%  { top:var(--off); left:calc(100% - var(--off) - var(--spark)); }
+  50%  { top:calc(100% - var(--off) - var(--spark)); left:calc(100% - var(--off) - var(--spark)); }
+  75%  { top:calc(100% - var(--off) - var(--spark)); left:var(--off); }
+  100% { top:var(--off); left:var(--off); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .neon::before, .neon::after{ animation:none; }
+}
+
+  </style>
 </head>
-<body class="bg-gray-950 text-white min-h-screen flex flex-col" x-data="app">
+<body class="bg-gray-950 text-white min-h-screen flex flex-col pb-20" x-data="app">
+
+  <!-- Sons -->
+  <audio id="sound-click" src="click.mp3"></audio>
 
   <!-- TOPO -->
   <header class="bg-gray-900 p-4 flex justify-between items-center border-b border-yellow-500">
-    <h1 class="text-xl font-bold text-yellow-400">🔥 KING999</h1>
+    <h1 class="text-xl font-bold text-yellow-400"><img src="logo.png" alt="Logo" class="h-12 w-auto"></h1>
     <div class="flex items-center gap-2">
       <span class="bg-green-600 px-2 py-1 rounded text-xs">R$ 0,00</span>
       <button 
-        @click="showDeposit = true"
-        class="bg-yellow-300 hover:bg-yellow-400 text-black px-4 py-2 rounded font-semibold"
+        @click="document.getElementById('sound-click').play(); showDeposit = true"
+        class="ripple bg-yellow-300 hover:bg-yellow-400 text-black px-4 py-2 rounded font-semibold"
+        @mousedown="$el.classList.add('clicked'); setTimeout(()=> $el.classList.remove('clicked'), 600)"
       >
         💰 Depósito
       </button>
     </div>
   </header>
 
-  <!-- CARROSSEL DE BANNERS -->
-  <div x-data="{
-      current: 0,
-      banners: ['banner1.png', 'banner2.png'],
-      init() {
-        setInterval(() => {
-          this.current = (this.current + 1) % this.banners.length;
-        }, 3000);
-      }
-    }" class="relative w-full overflow-hidden h-28 sm:h-32 md:h-40 bg-black">
-    <template x-for="(banner, index) in banners" :key="index">
-      <img :src="banner"
-           x-show="current === index"
-           class="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700"
-           x-transition:enter="transition ease-out duration-500"
-           x-transition:enter-start="opacity-0"
-           x-transition:enter-end="opacity-100"
-           x-transition:leave="transition ease-in duration-300"
-           x-transition:leave-start="opacity-100"
-           x-transition:leave-end="opacity-0"
-      />
-    </template>
+  <!-- CARROSSEL BANNER -->
+  <div class="relative w-full h-32 sm:h-40 overflow-hidden bg-black">
+    <img :src="banners[bannerAtual]" class="absolute inset-0 w-full h-full object-cover transition duration-700 ease-in-out" />
   </div>
 
   <!-- JACKPOT -->
@@ -71,8 +158,12 @@
   <main class="p-4 grid grid-cols-3 gap-4 flex-grow bg-black">
     <template x-for="jogo in jogos" :key="jogo.nome">
       <div 
-        class="bg-gray-800 rounded-xl p-2 text-center cursor-pointer hover:scale-105 transform transition relative shadow-lg"
-        @click="alert('Deposite no mínimo R$20,00 para liberar o acesso ao jogo.')"
+        class="neon ripple bg-gray-800 rounded-xl p-2 text-center cursor-pointer hover:scale-105 transform transition relative shadow-lg"
+        @click="
+          document.getElementById('sound-click').play();
+          alert('Deposite no mínimo R$20,00 para liberar o acesso ao jogo.');
+        "
+        @mousedown="$el.classList.add('clicked'); setTimeout(()=> $el.classList.remove('clicked'), 600)"
       >
         <img :src="jogo.img" alt="" class="mx-auto mb-2 rounded-lg w-full" />
         <p class="text-xs font-semibold text-white leading-tight" x-text="jogo.nome"></p>
@@ -109,15 +200,36 @@
     </div>
   </div>
 
-  <!-- RODAPÉ -->
-  <footer class="bg-gray-900 text-center text-xs p-3 text-gray-400">
-    © 2025 KING999. Todos os direitos reservados.
-  </footer>
+  <!-- MENU INFERIOR FIXO -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 flex justify-around py-2 text-xs text-gray-400 z-50">
+    <a href="home.html" class="flex flex-col items-center text-yellow-400">
+      <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h3m10-11v10a1 1 0 001 1h3M10 21h4"/></svg>
+      Início
+    </a>
+    <a href="promocao.html" class="flex flex-col items-center">
+      <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"/></svg>
+      Promoção
+    </a>
+    <a href="agente.html" class="flex flex-col items-center">
+      <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422A12.083 12.083 0 0121 17.582M12 14v6.5"/></svg>
+      Agente
+    </a>
+    <a href="deposito.html" class="flex flex-col items-center">
+      <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3"/></svg>
+      Depósito
+    </a>
+    <a href="perfil.html" class="flex flex-col items-center">
+      <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A4.992 4.992 0 0112 16c1.657 0 3.156.672 4.243 1.757M15 10a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Perfil
+    </a>
+  </nav>
 
-  <!-- SCRIPT PRINCIPAL -->
+  <!-- SCRIPT -->
   <script>
     const app = {
       showDeposit: false,
+      bannerAtual: 0,
+      banners: ['banner1.png', 'banner2.png'],
       jogos: [
         { nome: 'Fortune Snake', img: 'fortune-snake.png' },
         { nome: 'Fortune Tiger', img: 'fortune-tiger.png' },
@@ -127,35 +239,14 @@
         { nome: 'Cash Mania', img: 'cash-mania.png' },
         { nome: 'Fortune Dragon', img: 'fortune-dragon.png' },
         { nome: 'Ganesha', img: 'ganesha.png' },
-        { nome: 'Fortune Panda', img: 'fortune-panda.png' }
+        { nome: 'Lucky Cat', img: 'prosperi.png' }
       ]
     };
+
+    setInterval(() => {
+      app.bannerAtual = (app.bannerAtual + 1) % app.banners.length;
+    }, 3000);
   </script>
-
-<!-- MENU INFERIOR FIXO -->
-<nav class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 flex justify-around py-2 text-xs text-gray-400 z-50">
-  <a href="home.html" class="flex flex-col items-center text-yellow-400">
-    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h3m10-11v10a1 1 0 001 1h3M10 21h4"/></svg>
-    Início
-  </a>
-  <a href="promocao.html" class="flex flex-col items-center">
-    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"/></svg>
-    Promoção
-  </a>
-  <a href="agente.html" class="flex flex-col items-center">
-    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422A12.083 12.083 0 0121 17.582M12 14v6.5"/></svg>
-    Agente
-  </a>
-  <a href="deposito.html" class="flex flex-col items-center">
-    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3"/></svg>
-    Depósito
-  </a>
-  <a href="perfil.html" class="flex flex-col items-center">
-    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A4.992 4.992 0 0112 16c1.657 0 3.156.672 4.243 1.757M15 10a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-    Perfil
-  </a>
-</nav>
-
 
 </body>
 </html>
