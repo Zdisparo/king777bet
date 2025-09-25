@@ -12,6 +12,22 @@
       showDeposit: false,
       showBonus: false,
       bannerAtual: 0,
+
+      /* ===== NOVO: modal de pagamento via iFrame ===== */
+      showPaymentFrame: false,
+      paymentUrl: '',
+      paymentLabel: '',
+      // Configure aqui seus links (por valor). Por enquanto, só 10 tem link:
+      paymentLinks: {
+        10: "https://app.pushinpay.com.br/service/pay/9F8CF525-D734-4733-B7B7-49577DD62627",
+        20: "",
+        50: "",
+        100: "",
+        200: "",
+        500: "",
+        1000: ""
+      },
+
       banners: ['banner1.png', 'banner2.png'],
       jogos: [
         { nome: 'Fortune Snake', img: 'fortune-snake.png' },
@@ -91,7 +107,7 @@
     .ripple.clicked::after { animation: ripple-effect 0.6s ease-out; }
     @keyframes ripple-effect { from { transform: scale(1); opacity: .7; } to { transform: scale(100); opacity: 0; } }
 
-    /* ===== NEON cards (faísca) ===== */
+    /* ===== NEON nos cards (com faísca) ===== */
     .neon{ position: relative; overflow: visible; border-radius: 0.75rem; }
     .neon::before{
       content:""; position:absolute; inset:0; border-radius: inherit; pointer-events:none;
@@ -200,6 +216,15 @@
       transform: translateY(0) scale(1.1);
       transition: transform 0.2s linear;
     }
+
+    /* === Modal iFrame de Pagamento === */
+    .frame-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.9); display:flex; align-items:center; justify-content:center; z-index:70; }
+    .frame-card{ width:min(95vw,560px); height:80vh; background:#0b1020; border-radius:16px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.6); position:relative; }
+    .frame-header{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:#0f172a; border-bottom:1px solid #1f2937; }
+    .frame-title{ font-weight:800; color:#facc15; }
+    .frame-close{ width:36px; height:36px; border-radius:10px; background:#111827; color:#e5e7eb; border:1px solid #374151; }
+    .frame-body{ position:absolute; inset:50px 0 0 0; }
+    .frame-loader{ position:absolute; inset:50px 0 0 0; display:flex; align-items:center; justify-content:center; color:#e5e7eb; font-size:12px; gap:10px; }
   </style>
 </head>
 
@@ -295,7 +320,7 @@
         class="neon ripple bg-gray-800 rounded-xl p-2 text-center cursor-pointer hover:scale-105 transform transition relative shadow-lg"
         @click="
           document.getElementById('sound-click').play();
-          alert('Deposite no mínimo R$20,00 para liberar o acesso ao jogo.');
+          alert('Deposite no mínimo R$10,00 para liberar o acesso ao jogo.');
         "
         @mousedown="$el.classList.add('clicked'); setTimeout(()=> $el.classList.remove('clicked'), 600)"
       >
@@ -307,41 +332,73 @@
     </template>
   </main>
 
-  <!-- MODAL DEPÓSITO -->
+  <!-- MODAL DEPÓSITO (lista de valores) -->
   <div class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50" x-show="showDeposit" x-cloak>
     <div class="bg-gray-900 p-6 rounded-xl w-96 text-center">
       <h2 class="text-xl font-bold mb-4 text-yellow-400">Escolha o valor para depósito</h2>
       <div class="grid grid-cols-3 gap-2">
-        <template x-for="valor in [20, 50, 100, 200, 500, 1000]" :key="valor">
-          <a :href="'deposito.html?valor=' + valor" class="bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-2 rounded font-bold" x-text="'R$ ' + valor"></a>
+        <template x-for="valor in [10, 20, 50, 100, 200, 500, 1000]" :key="valor">
+          <!-- Se houver link para o valor, abre iFrame; senão, fallback pro fluxo antigo -->
+          <a
+            :href="'deposito.html?valor=' + valor"
+            class="bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-2 rounded font-bold"
+            x-text="'R$ ' + valor"
+            @click.prevent="
+              const url = paymentLinks[valor];
+              if (url) {
+                paymentUrl = url;
+                paymentLabel = 'R$ ' + valor;
+                showPaymentFrame = true;
+              } else {
+                window.location.href = 'deposito.html?valor=' + valor;
+              }
+            "
+          ></a>
         </template>
       </div>
       <button class="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded w-full" @click="showDeposit = false">Cancelar</button>
     </div>
   </div>
 
-  <!-- MENU INFERIOR FIXO (ícones idênticos ao print: emojis) -->
+  <!-- MODAL IFRAME DE PAGAMENTO -->
+  <div class="frame-overlay" x-show="showPaymentFrame" x-cloak>
+    <div class="frame-card" x-data="{loaded:false, fail:false}" x-init="setTimeout(()=>{ if(!loaded) fail=true }, 2500)">
+      <div class="frame-header">
+        <div class="frame-title">Pagamento PIX — <span x-text="paymentLabel"></span></div>
+        <button class="frame-close" @click="showPaymentFrame=false">✕</button>
+      </div>
+      <!-- Loader / Fallback -->
+      <div class="frame-loader" x-show="!loaded">
+        <svg xmlns="http://www.w3.org/2000/svg" class="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="4" opacity=".25"/><path d="M22 12a10 10 0 0 1-10 10" stroke-width="4"/></svg>
+        <span>Carregando pagamento...</span>
+      </div>
+      <!-- iFrame -->
+      <div class="frame-body">
+        <iframe
+          :src="paymentUrl"
+          class="w-full h-full"
+          referrerpolicy="no-referrer"
+          allow="clipboard-write; payment *"
+          @load="loaded = true"
+        ></iframe>
+      </div>
+      <!-- Fallback: abrir em nova aba se iFrame bloqueado -->
+      <div class="absolute inset-0 flex items-center justify-center bg-black/70 p-4" x-show="fail && !loaded">
+        <div class="text-center">
+          <p class="text-gray-200 mb-3 text-sm">Não foi possível abrir dentro do app.</p>
+          <a :href="paymentUrl" target="_blank" rel="noopener" class="bg-yellow-400 text-black font-bold px-4 py-2 rounded">Abrir em nova aba</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENU INFERIOR FIXO (emojis como ícones) -->
   <nav class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 flex justify-around py-2 text-xs text-gray-300 z-50">
-    <a href="home.html" class="flex flex-col items-center text-yellow-400">
-      <span class="text-lg leading-none">🏠</span>
-      <span>Início</span>
-    </a>
-    <a href="promocao.html" class="flex flex-col items-center">
-      <span class="text-lg leading-none">🎁</span>
-      <span>Promoção</span>
-    </a>
-    <a href="agente.html" class="flex flex-col items-center">
-      <span class="text-lg leading-none">👤</span>
-      <span>Agente</span>
-    </a>
-    <a href="deposito.html" class="flex flex-col items-center">
-      <span class="text-lg leading-none">💰</span>
-      <span>Depósito</span>
-    </a>
-    <a href="perfil.html" class="flex flex-col items-center">
-      <span class="text-lg leading-none">⚙</span>
-      <span>Perfil</span>
-    </a>
+    <a href="home.html" class="flex flex-col items-center text-yellow-400"><span class="text-lg leading-none">🏠</span><span>Início</span></a>
+    <a href="promocao.html" class="flex flex-col items-center"><span class="text-lg leading-none">🎁</span><span>Promoção</span></a>
+    <a href="agente.html" class="flex flex-col items-center"><span class="text-lg leading-none">👤</span><span>Agente</span></a>
+    <a href="deposito.html" class="flex flex-col items-center"><span class="text-lg leading-none">💰</span><span>Depósito</span></a>
+    <a href="perfil.html" class="flex flex-col items-center"><span class="text-lg leading-none">⚙</span><span>Perfil</span></a>
   </nav>
 
   <!-- RODAPÉ -->
