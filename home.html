@@ -404,17 +404,50 @@
   <!-- Camada do confete -->
   <div id="confetti" aria-hidden="true"></div>
 
-  <!-- Pixel: Lead no clique do botão Depósito -->
-  <script>
-    (function(){
-      const btn = document.getElementById('btn-deposito');
-      if(btn){
-        btn.addEventListener('click', function(){
-          if (window.fbq) fbq('track','Lead', {source: 'header_deposito'});
-        });
+  <<!-- Pixel: Lead (1x a cada 7 dias por pessoa) -->
+<script>
+  (function () {
+    const SEVEN_D_MS = 7 * 24 * 60 * 60 * 1000;
+
+    function getLeadIdSafe() {
+      try {
+        // usa sua própria função (já existe no arquivo) e cai para localStorage se preciso
+        return (window.resolveLeadId && resolveLeadId()) ||
+               localStorage.getItem('lead_id') ||
+               localStorage.getItem('anon_id') ||
+               'anon';
+      } catch (e) {
+        return 'anon';
       }
-    })();
-  </script>
+    }
+
+    const leadId = getLeadIdSafe();
+    const KEY = `lead_evt_last_${leadId}`; // guarda por pessoa
+    const btn = document.getElementById('btn-deposito');
+
+    if (btn) {
+      btn.addEventListener('click', function () {
+        try {
+          const last = parseInt(localStorage.getItem(KEY) || '0', 10);
+          const now = Date.now();
+
+          // Só dispara se nunca disparou OU se já se passaram 7 dias
+          if (!last || (now - last) >= SEVEN_D_MS) {
+            if (window.fbq) {
+              fbq('track', 'Lead', { source: 'header_deposito', lid: leadId });
+            }
+            // registra o momento do disparo pra travar os próximos por 7 dias
+            localStorage.setItem(KEY, String(now));
+          }
+        } catch (e) { /* silencioso para não quebrar nada */ }
+      });
+    }
+
+    // Dica p/ testar novamente:
+    // localStorage.removeItem(`lead_evt_last_${leadId}`);
+  })();
+</script>
+
 
   <!-- Parallax do banner -->
   <script>
@@ -434,4 +467,3 @@
 
 </body>
 </html>
-
