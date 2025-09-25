@@ -23,6 +23,14 @@
         { nome: 'Fortune Dragon', img: 'fortune-dragon.png' },
         { nome: 'Ganesha', img: 'ganesha.png' },
         { nome: 'Lucky Cat', img: 'prosperi.png' }
+      ],
+      /* Winners para o ticker */
+      winners: [
+        {id:1, nome:'@joa***', jogo:'Fortune Tiger',  valor:'R$ 480'},
+        {id:2, nome:'@ana***', jogo:'Ganesha',        valor:'R$ 1.200'},
+        {id:3, nome:'@leo***', jogo:'Lucky Cat',      valor:'R$ 260'},
+        {id:4, nome:'@bia***', jogo:'Cash Mania',     valor:'R$ 820'},
+        {id:5, nome:'@rai***', jogo:'Fortune Dragon', valor:'R$ 3.100'}
       ]
     };
 
@@ -68,7 +76,7 @@
   <script defer src="https://unpkg.com/alpinejs"></script>
 
   <style>
-    /* 👇 bloqueia qualquer scroll lateral causado por brilhos/efeitos */
+    /* evita qualquer scroll lateral por brilhos/efeitos */
     html, body { max-width: 100%; overflow-x: hidden; }
 
     [x-cloak]{ display:none !important; }
@@ -171,6 +179,60 @@
     }
     @keyframes confettiFall { to { transform: translateY(120vh); opacity: 0.8; } }
     @keyframes confettiSpin { 0% { rotate: 0deg; } 100% { rotate: 360deg; } }
+
+    /* ===== EFEITOS NOVOS ===== */
+
+    /* Aurora de fundo (ambiente) */
+    #aurora{
+      position:fixed; inset:-20vh -20vw; z-index:-1; pointer-events:none;
+      background:
+        radial-gradient(30vh 30vh at 20% 30%, rgba(255,215,64,.12), transparent 60%),
+        radial-gradient(40vh 40vh at 80% 20%, rgba(72,187,255,.10), transparent 60%),
+        radial-gradient(35vh 35vh at 50% 80%, rgba(255,99,132,.10), transparent 60%);
+      filter: blur(20px) saturate(120%);
+      animation: auroraMove 25s ease-in-out infinite alternate;
+    }
+    @keyframes auroraMove {
+      0% { transform: translate3d(0,0,0) scale(1); }
+      50%{ transform: translate3d(-2%,1%,0) scale(1.05); }
+      100%{ transform: translate3d(2%,-1%,0) scale(1); }
+    }
+
+    /* Winners ticker */
+    .winners-ticker{
+      background:#0b1220; border-top:1px solid #1f2937; border-bottom:1px solid #1f2937;
+      overflow:hidden;
+    }
+    .ticker-track{
+      display:inline-flex; gap:24px; white-space:nowrap; will-change: transform;
+      animation: ticker 25s linear infinite;
+    }
+    @keyframes ticker{ from{ transform: translateX(0);} to{ transform: translateX(-50%);} }
+    .ticker-item{ display:flex; align-items:center; gap:8px; color:#e5e7eb; font-size:12px; padding:8px 0;}
+    .ticker-chip{ background:#22c55e; color:#052e16; font-weight:800; border-radius:999px; padding:2px 8px; }
+
+    /* Jackpot com shine */
+    .jackpot-value{
+      position:relative; color:#ffd54a; font-weight:900; letter-spacing:.12em;
+      text-shadow: 0 0 12px rgba(255, 215, 74, .35);
+      background: linear-gradient(90deg,#ffe082 0%, #fff8e1 25%, #ffd54a 50%, #fff8e1 75%, #ffe082 100%);
+      -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color: transparent;
+      background-size:200% auto; animation: jackpotShine 6s ease-in-out infinite;
+    }
+    @keyframes jackpotShine{ 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+
+    /* Pulso no botão Depósito */
+    .attention-pulse{ position:relative; }
+    .attention-pulse::after{
+      content:''; position:absolute; inset:-4px; border-radius:12px;
+      box-shadow: 0 0 0 0 rgba(250, 204, 21, .6);
+      animation: pulseRing 2.4s ease-out infinite;
+    }
+    @keyframes pulseRing{
+      0%{ box-shadow: 0 0 0 0 rgba(250, 204, 21, .55); }
+      70%{ box-shadow: 0 0 0 10px rgba(250, 204, 21, 0); }
+      100%{ box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); }
+    }
   </style>
 </head>
 
@@ -201,6 +263,8 @@
     }
   "
 >
+  <!-- Aurora de fundo -->
+  <div id="aurora" aria-hidden="true"></div>
 
   <!-- Sons -->
   <audio id="sound-click" src="click.mp3" preload="auto"></audio>
@@ -213,7 +277,7 @@
       <span class="bg-green-600 px-2 py-1 rounded text-xs">R$ 0,00</span>
       <button 
         @click="document.getElementById('sound-click').play(); showDeposit = true"
-        class="ripple bg-yellow-300 hover:bg-yellow-400 text-black px-4 py-2 rounded font-semibold"
+        class="attention-pulse ripple bg-yellow-300 hover:bg-yellow-400 text-black px-4 py-2 rounded font-semibold"
         @mousedown="$el.classList.add('clicked'); setTimeout(()=> $el.classList.remove('clicked'), 600)"
       >💰 Depósito</button>
     </div>
@@ -228,7 +292,7 @@
   <div class="w-full bg-black relative flex justify-center items-center overflow-hidden" style="height: 100px;">
     <img src="jackpot.webp" alt="Jackpot" class="w-full h-full object-contain" />
     <div class="absolute inset-0 flex justify-center items-center mt-[6px] sm:mt-[10px]">
-      <span class="text-yellow-300 text-lg sm:text-2xl md:text-3xl font-extrabold tracking-widest drop-shadow-md">
+      <span class="jackpot-value text-lg sm:text-2xl md:text-3xl tracking-widest">
         115.752.746,45
       </span>
     </div>
@@ -242,6 +306,20 @@
     <button>⭐ Favoritos</button>
     <button>📜 Histórico</button>
   </nav>
+
+  <!-- TICKER de vencedores -->
+  <div class="winners-ticker">
+    <div class="ticker-track">
+      <template x-for="w in [...winners, ...winners]" :key="w.id + '-' + Math.random()">
+        <div class="ticker-item">
+          <span class="ticker-chip" x-text="w.valor"></span>
+          <span x-text="w.nome"></span>
+          <span>ganhou em</span>
+          <strong class="text-yellow-300" x-text="w.jogo"></strong>
+        </div>
+      </template>
+    </div>
+  </div>
 
   <!-- LISTA DE JOGOS -->
   <main class="p-4 grid grid-cols-3 gap-4 flex-grow bg-black">
