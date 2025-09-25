@@ -276,7 +276,7 @@
         class="neon ripple bg-gray-800 rounded-xl p-2 text-center cursor-pointer hover:scale-105 transform transition relative shadow-lg"
         @click="
           document.getElementById('sound-click').play();
-          alert('Deposite no mínimo R$20,00 para liberar o acesso ao jogo.');
+          alert('Deposite no mínimo R$10,00 para liberar o acesso ao jogo.');
         "
         @mousedown="$el.classList.add('clicked'); setTimeout(()=> $el.classList.remove('clicked'), 600)"
       >
@@ -467,3 +467,4 @@
 
 </body>
 </html>
+
