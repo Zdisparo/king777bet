@@ -3,7 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cadastro - KING999</title>
+  <title>Cadastro - KING777bets</title>
+
+  <!-- Meta Pixel Code -->
+  <script>
+    !function(f,b,e,v,n,t,s){
+      if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;
+      s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)
+    }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1143296044430858');
+    fbq('track', 'PageView');
+    fbq('track', 'ViewContent', {content_name: 'Cadastro', content_category: 'KING999'});
+  </script>
+  <noscript>
+    <img height="1" width="1" style="display:none"
+         src="https://www.facebook.com/tr?id=1143296044430858&ev=PageView&noscript=1"/>
+  </noscript>
+  <!-- /Meta Pixel Code -->
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://unpkg.com/alpinejs"></script>
   <link rel="stylesheet" href="style.css">
@@ -109,7 +129,8 @@
           erro = 'As senhas não coincidem!'
         } else {
           localStorage.setItem('user', JSON.stringify({ nome, celular }));
-          window.location.href = 'home.html';
+          try { if (window.fbq) fbq('track', 'CompleteRegistration', {content_name:'Cadastro', status:'success'}); } catch(e){}
+          setTimeout(()=>{ window.location.href = 'home.html'; }, 150);
         }
       "
       @mousedown="$el.classList.add('clicked'); setTimeout(() => $el.classList.remove('clicked'), 600)"
@@ -147,19 +168,15 @@
 
       function openSigap(){
         overlay.style.display = 'flex';
-        // marca como visto na primeira abertura
         try { localStorage.setItem(STORAGE_KEY, '1'); } catch(e){}
       }
-      function closeSigap(){
-        overlay.style.display = 'none';
-      }
+      function closeSigap(){ overlay.style.display = 'none'; }
 
       window.addEventListener('load', () => {
         try {
           const seen = localStorage.getItem(STORAGE_KEY);
           if (!seen) setTimeout(openSigap, DELAY_MS);
         } catch (e) {
-          // se localStorage não estiver disponível, apenas abre
           setTimeout(openSigap, DELAY_MS);
         }
       });
@@ -169,8 +186,7 @@
       overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSigap(); });
       document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSigap(); });
 
-      // Dica para testes: remova a marcação com:
-      // localStorage.removeItem('sigap_popup_seen')
+      // Teste: localStorage.removeItem('sigap_popup_seen')
     })();
   </script>
 
