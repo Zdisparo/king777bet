@@ -4,116 +4,206 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Home - KING999</title>
+
+  <!-- Estado base disponível antes do Alpine -->
+  <script>
+    // Estado inicial
+    window.app = {
+      showDeposit: false,
+      showBonus: false,
+      bannerAtual: 0,
+      banners: ['banner1.png', 'banner2.png'],
+      jogos: [
+        { nome: 'Fortune Snake', img: 'fortune-snake.png' },
+        { nome: 'Fortune Tiger', img: 'fortune-tiger.png' },
+        { nome: 'Fortune Rabbit', img: 'fortune-rabbit.png' },
+        { nome: 'Fortune Ox', img: 'fortune-ox.png' },
+        { nome: 'Fortune Mouse', img: 'fortune-mouse.png' },
+        { nome: 'Cash Mania', img: 'cash-mania.png' },
+        { nome: 'Fortune Dragon', img: 'fortune-dragon.png' },
+        { nome: 'Ganesha', img: 'ganesha.png' },
+        { nome: 'Lucky Cat', img: 'prosperi.png' }
+      ]
+    };
+
+    // Util: confete leve (global)
+    function launchConfetti(){
+      const colors = ['#ffd54a','#ff6d00','#ff3d00','#29b6f6','#66bb6a','#ab47bc'];
+      const container = document.getElementById('confetti');
+      if (!container) return;
+      const pieces = 70;
+      for(let i=0;i<pieces;i++){
+        const c = document.createElement('span');
+        c.className = 'confetti';
+        const size = 6 + Math.random()*6;
+        c.style.width = size+'px';
+        c.style.height = (size+3)+'px';
+        c.style.left = (Math.random()*100)+'%';
+        c.style.background = colors[Math.floor(Math.random()*colors.length)];
+        const duration = 1.8 + Math.random()*1.8;
+        c.style.animationDuration = duration+'s, '+(0.8+Math.random()*0.6)+'s';
+        c.style.animationDelay = (Math.random()*0.2)+'s, 0s';
+        container.appendChild(c);
+      }
+      setTimeout(()=>{ container.innerHTML=''; }, 3000);
+    }
+
+    // Util: pega/stora lead_id (URL > localStorage). Se não houver, usa anon_id
+    function resolveLeadId(){
+      const params = new URLSearchParams(location.search);
+      let lid = localStorage.getItem('lead_id') || params.get('lead_id');
+      if (lid) localStorage.setItem('lead_id', lid);
+      if (!lid){
+        lid = localStorage.getItem('anon_id');
+        if (!lid){
+          lid = Math.random().toString(36).slice(2) + Date.now().toString(36);
+          localStorage.setItem('anon_id', lid);
+        }
+      }
+      return lid;
+    }
+  </script>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://unpkg.com/alpinejs"></script>
+
   <style>
-    .ripple {
-      position: relative;
-      overflow: hidden;
-    }
+    [x-cloak]{ display:none !important; }
+
+    /* Ripple */
+    .ripple { position: relative; overflow: hidden; }
     .ripple::after {
-      content: '';
-      position: absolute;
-      border-radius: 50%;
-      width: 5px;
-      height: 5px;
-      background: rgba(255,255,255,0.6);
-      transform: scale(1);
-      opacity: 0;
-      pointer-events: none;
+      content: ''; position: absolute; border-radius: 50%;
+      width: 5px; height: 5px; background: rgba(255,255,255,0.6);
+      transform: scale(1); opacity: 0; pointer-events: none;
     }
-    .ripple.clicked::after {
-      animation: ripple-effect 0.6s ease-out;
-    }
+    .ripple.clicked::after { animation: ripple-effect 0.6s ease-out; }
     @keyframes ripple-effect {
       from { transform: scale(1); opacity: 0.7; }
       to   { transform: scale(100); opacity: 0; }
     }
 
-    /* ===== NEON COMPATÍVEL (box-shadow + faísca rodando) ===== */
-.neon{
-  position: relative;
-  overflow: visible;               /* deixa o brilho/faisca visível fora do card */
-  border-radius: 0.75rem;          /* combine com rounded-xl */
-}
+    /* ===== NEON nos cards (com faísca) ===== */
+    .neon{ position: relative; overflow: visible; border-radius: 0.75rem; }
+    .neon::before{
+      content:""; position:absolute; inset:0; border-radius: inherit; pointer-events:none;
+      box-shadow:
+        0 0 0 2px rgba(255,213,74,.9) inset,
+        0 0 10px rgba(255,213,74,.45),
+        0 0 18px rgba(255,109,0,.35),
+        0 0 28px rgba(255,61,0,.25);
+      animation: neonPulse 3.2s ease-in-out infinite;
+      z-index:1;
+    }
+    @keyframes neonPulse{
+      0%,100%{ box-shadow:
+        0 0 0 2px rgba(255,213,74,.95) inset,
+        0 0 10px rgba(255,213,74,.55),
+        0 0 18px rgba(255,109,0,.40),
+        0 0 28px rgba(255,61,0,.30);}
+      50%{ box-shadow:
+        0 0 0 2px rgba(255,213,74,.75) inset,
+        0 0 6px rgba(255,213,74,.35),
+        0 0 12px rgba(255,109,0,.28),
+        0 0 18px rgba(255,61,0,.22);}
+    }
+    .neon::after{
+      --spark: 10px; --off: 6px;
+      content:""; position:absolute; width:var(--spark); height:var(--spark);
+      border-radius:50%; background:#fff; filter: blur(0.3px);
+      box-shadow:
+        0 0 6px rgba(255,255,255,.95),
+        0 0 12px rgba(255,213,74,.85),
+        0 0 18px rgba(255,109,0,.6),
+        0 0 26px rgba(255,61,0,.45);
+      pointer-events:none; z-index:2;
+      top:var(--off); left:var(--off);
+      animation: sparkLoop 2.6s linear infinite;
+    }
+    @keyframes sparkLoop{
+      0%   { top:var(--off); left:var(--off); }
+      25%  { top:var(--off); left:calc(100% - var(--off) - var(--spark)); }
+      50%  { top:calc(100% - var(--off) - var(--spark)); left:calc(100% - var(--off) - var(--spark)); }
+      75%  { top:calc(100% - var(--off) - var(--spark)); left:var(--off); }
+      100% { top:var(--off); left:var(--off); }
+    }
+    @media (prefers-reduced-motion: reduce){
+      .neon::before, .neon::after{ animation:none; }
+    }
 
-/* Glow/borda neon pulsando */
-.neon::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius: inherit;
-  pointer-events:none;
-  box-shadow:
-    0 0 0 2px rgba(255,213,74,.9) inset,
-    0 0 10px rgba(255,213,74,.45),
-    0 0 18px rgba(255,109,0,.35),
-    0 0 28px rgba(255,61,0,.25);
-  animation: neonPulse 3.2s ease-in-out infinite;
-  z-index:1;
-}
-@keyframes neonPulse{
-  0%,100%{
-    box-shadow:
-      0 0 0 2px rgba(255,213,74,.95) inset,
-      0 0 10px rgba(255,213,74,.55),
-      0 0 18px rgba(255,109,0,.40),
-      0 0 28px rgba(255,61,0,.30);
-  }
-  50%{
-    box-shadow:
-      0 0 0 2px rgba(255,213,74,.75) inset,
-      0 0 6px rgba(255,213,74,.35),
-      0 0 12px rgba(255,109,0,.28),
-      0 0 18px rgba(255,61,0,.22);
-  }
-}
+    /* ===== POPUP BÔNUS ===== */
+    .popup-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.8); display:flex; align-items:center; justify-content:center; z-index:60; }
+    .popup {
+      position: relative;
+      width: min(92vw, 520px);
+      background: #0f172a;
+      color: #fff;
+      border-radius: 1rem;
+      padding: 28px 22px;
+      text-align: center;
+      animation: popPulse 1.6s ease-in-out infinite;
+    }
+    @keyframes popPulse {
+      0%,100% { transform: scale(1); box-shadow: 0 0 0 rgba(255, 193, 7, 0); }
+      50%     { transform: scale(1.02); box-shadow: 0 0 24px rgba(255, 193, 7, .25); }
+    }
+    .popup::before{
+      content:"";
+      position:absolute; inset:-2px; border-radius:1rem; pointer-events:none;
+      box-shadow:
+        0 0 0 2px rgba(255,213,74,.95) inset,
+        0 0 14px rgba(255,213,74,.50),
+        0 0 22px rgba(255,109,0,.35);
+    }
 
-/* === Faísca que dá a volta no retângulo === */
-.neon::after{
-  /* variáveis pra não “errar” a borda */
-  --spark: 10px;   /* tamanho da bolinha */
-  --off:   6px;    /* distância da borda (ajuste fino) */
-
-  content:"";
-  position:absolute;
-  width:var(--spark); height:var(--spark);
-  border-radius:50%;
-  background: #fff;
-  filter: blur(0.3px);
-  box-shadow:
-    0 0 6px rgba(255,255,255,.95),
-    0 0 12px rgba(255,213,74,.85),
-    0 0 18px rgba(255,109,0,.6),
-    0 0 26px rgba(255,61,0,.45);
-  pointer-events:none;
-  z-index:2;
-
-  /* ponto inicial: topo-esquerda */
-  top:var(--off); left:var(--off);
-
-  animation: sparkLoop 2.6s linear infinite;
-}
-
-/* Caminho ao redor do card */
-@keyframes sparkLoop{
-  0%   { top:var(--off); left:var(--off); }
-  25%  { top:var(--off); left:calc(100% - var(--off) - var(--spark)); }
-  50%  { top:calc(100% - var(--off) - var(--spark)); left:calc(100% - var(--off) - var(--spark)); }
-  75%  { top:calc(100% - var(--off) - var(--spark)); left:var(--off); }
-  100% { top:var(--off); left:var(--off); }
-}
-
-@media (prefers-reduced-motion: reduce){
-  .neon::before, .neon::after{ animation:none; }
-}
-
+    /* ===== CONFETTI ===== */
+    #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 70; overflow: hidden; }
+    .confetti {
+      position: absolute; top: -10vh;
+      width: 8px; height: 12px;
+      opacity: .9; border-radius: 2px;
+      animation-name: confettiFall, confettiSpin;
+      animation-timing-function: linear, ease-in-out;
+      animation-iteration-count: 1, infinite;
+    }
+    @keyframes confettiFall { to { transform: translateY(120vh); opacity: 0.8; } }
+    @keyframes confettiSpin { 0% { rotate: 0deg; } 100% { rotate: 360deg; } }
   </style>
 </head>
-<body class="bg-gray-950 text-white min-h-screen flex flex-col pb-20" x-data="app">
+
+<body
+  class="bg-gray-950 text-white min-h-screen flex flex-col pb-20"
+  x-data="app"
+  x-init="
+    // carrossel
+    setInterval(()=>{ bannerAtual = (bannerAtual + 1) % banners.length; }, 3000);
+
+    // gating por lead_id no localStorage
+    const leadId = resolveLeadId();
+    const key = `bonusShown_${leadId}`;
+
+    if (!localStorage.getItem(key)) {
+      setTimeout(()=>{
+        showBonus = true;                 // mostra popup
+        try {
+          $refs.bonusSound.currentTime = 0;
+          // tenta tocar junto com o popup
+          $refs.bonusSound.play().catch(()=>{
+            // fallback: toca no primeiro toque/click do usuário
+            const oncePlay = () => { $refs.bonusSound.play().catch(()=>{}); document.removeEventListener('pointerdown', oncePlay, {once:true}); };
+            document.addEventListener('pointerdown', oncePlay, {once:true});
+          });
+        } catch(e){}
+        launchConfetti();                  // confete 3s
+        localStorage.setItem(key, '1');    // marca como visto
+      }, 3000);
+    }
+  "
+>
 
   <!-- Sons -->
-  <audio id="sound-click" src="click.mp3"></audio>
+  <audio id="sound-click" src="click.mp3" preload="auto"></audio>
+  <audio id="sound-bonus" x-ref="bonusSound" src="premiacao.mp3" preload="auto" playsinline></audio>
 
   <!-- TOPO -->
   <header class="bg-gray-900 p-4 flex justify-between items-center border-b border-yellow-500">
@@ -124,9 +214,7 @@
         @click="document.getElementById('sound-click').play(); showDeposit = true"
         class="ripple bg-yellow-300 hover:bg-yellow-400 text-black px-4 py-2 rounded font-semibold"
         @mousedown="$el.classList.add('clicked'); setTimeout(()=> $el.classList.remove('clicked'), 600)"
-      >
-        💰 Depósito
-      </button>
+      >💰 Depósito</button>
     </div>
   </header>
 
@@ -174,79 +262,79 @@
   </main>
 
   <!-- MODAL DEPÓSITO -->
-  <div
-    class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"
-    x-show="showDeposit"
-  >
+  <div class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50" x-show="showDeposit" x-cloak>
     <div class="bg-gray-900 p-6 rounded-xl w-96 text-center">
       <h2 class="text-xl font-bold mb-4 text-yellow-400">Escolha o valor para depósito</h2>
-
       <div class="grid grid-cols-3 gap-2">
         <template x-for="valor in [20, 50, 100, 200, 500, 1000]" :key="valor">
-          <a
-            :href="'deposito.html?valor=' + valor"
-            class="bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-2 rounded font-bold"
-            x-text="'R$ ' + valor"
-          ></a>
+          <a :href="'deposito.html?valor=' + valor" class="bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-2 rounded font-bold" x-text="'R$ ' + valor"></a>
         </template>
       </div>
-
-      <button 
-        class="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded w-full"
-        @click="showDeposit = false"
-      >
-        Cancelar
-      </button>
+      <button class="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded w-full" @click="showDeposit = false">Cancelar</button>
     </div>
   </div>
 
   <!-- MENU INFERIOR FIXO -->
   <nav class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 flex justify-around py-2 text-xs text-gray-400 z-50">
-    <a href="home.html" class="flex flex-col items-center text-yellow-400">
-      <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h3m10-11v10a1 1 0 001 1h3M10 21h4"/></svg>
-      Início
-    </a>
-    <a href="promocao.html" class="flex flex-col items-center">
-      <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"/></svg>
-      Promoção
-    </a>
-    <a href="agente.html" class="flex flex-col items-center">
-      <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422A12.083 12.083 0 0121 17.582M12 14v6.5"/></svg>
-      Agente
-    </a>
-    <a href="deposito.html" class="flex flex-col items-center">
-      <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3"/></svg>
-      Depósito
-    </a>
-    <a href="perfil.html" class="flex flex-col items-center">
-      <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A4.992 4.992 0 0112 16c1.657 0 3.156.672 4.243 1.757M15 10a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-      Perfil
-    </a>
+    <a href="home.html" class="flex flex-col items-center text-yellow-400">🏠 Início</a>
+    <a href="promocao.html" class="flex flex-col items-center">🎁 Promoção</a>
+    <a href="agente.html" class="flex flex-col items-center">👤 Agente</a>
+    <a href="deposito.html" class="flex flex-col items-center">💰 Depósito</a>
+    <a href="perfil.html" class="flex flex-col items-center">⚙ Perfil</a>
   </nav>
 
-  <!-- SCRIPT -->
-  <script>
-    const app = {
-      showDeposit: false,
-      bannerAtual: 0,
-      banners: ['banner1.png', 'banner2.png'],
-      jogos: [
-        { nome: 'Fortune Snake', img: 'fortune-snake.png' },
-        { nome: 'Fortune Tiger', img: 'fortune-tiger.png' },
-        { nome: 'Fortune Rabbit', img: 'fortune-rabbit.png' },
-        { nome: 'Fortune Ox', img: 'fortune-ox.png' },
-        { nome: 'Fortune Mouse', img: 'fortune-mouse.png' },
-        { nome: 'Cash Mania', img: 'cash-mania.png' },
-        { nome: 'Fortune Dragon', img: 'fortune-dragon.png' },
-        { nome: 'Ganesha', img: 'ganesha.png' },
-        { nome: 'Lucky Cat', img: 'prosperi.png' }
-      ]
-    };
+  <!-- RODAPÉ -->
+  <footer class="bg-gray-900 text-gray-300 text-sm pt-10 pb-6 mt-20 border-t border-gray-800">
+    <div class="max-w-6xl mx-auto px-4 grid grid-cols-3 gap-8">
+      <div>
+        <h3 class="font-bold text-white mb-3">Cassino ao vivo</h3>
+        <ul class="space-y-1"><li>Eventos</li><li>Tarefa</li><li>Rebate</li><li>Pendente</li><li>VIP</li><li>Agente</li><li>Histórico</li></ul>
+      </div>
+      <div>
+        <h3 class="font-bold text-white mb-3">Jogos</h3>
+        <ul class="space-y-1"><li>Pescaria</li><li>Slots</li></ul>
+      </div>
+      <div>
+        <h3 class="font-bold text-white mb-3">Apoiar</h3>
+        <ul class="space-y-1"><li>Suporte online</li></ul>
+      </div>
+    </div>
+    <div class="max-w-6xl mx-auto px-4 mt-6 text-xs text-gray-400">
+      <p>
+        O grupo é a empresa de operação de cassino online mais famosa do mundo e oferece entretenimento emocionante e divertido com dealers ao vivo incluindo cidade, jogos de mesa, eletrônicos, pesca, loteria, esportes, etc. 
+        Group é autorizado e regulamentado pelo Governo de Curaçao e opera de acordo com a licença número Antillephone emitida para 8048/JAZ. 
+        O grupo passou por todas as auditorias em conformidade e está legalmente autorizado a operar todos os jogos de oportunidade e apostas.
+      </p>
+    </div>
+    <div class="flex justify-center items-center gap-6 mt-6">
+      <img src="jdb.png" alt="JDB" class="h-8" />
+      <img src="jili.png" alt="JILI" class="h-8" />
+      <img src="pgsoft.png" alt="PGSoft" class="h-8" />
+      <img src="gamemania.png" alt="GameMania" class="h-8" />
+      <img src="pix.png" alt="PIX" class="h-8" />
+    </div>
+    <p class="text-center text-gray-500 mt-6">© 2020–2025. Todos os direitos reservados.</p>
+    <button onclick="window.scrollTo({top:0,behavior:'smooth'})" class="fixed bottom-24 right-4 bg-yellow-500 hover:bg-yellow-400 text-black p-3 rounded-full shadow-lg">⬆</button>
+  </footer>
 
-    setInterval(() => {
-      app.bannerAtual = (app.bannerAtual + 1) % app.banners.length;
-    }, 3000);
-  </script>
+  <!-- POPUP BÔNUS (controlado por Alpine) -->
+  <div class="popup-overlay" x-show="showBonus" x-cloak>
+    <div class="popup">
+      <h2 class="text-2xl font-extrabold text-yellow-300 drop-shadow mb-2">🎉 Parabéns!</h2>
+      <p class="text-sm text-gray-200 leading-relaxed">
+        Você acaba de ganhar o <span class="font-bold text-yellow-300">Bônus de Novo Membro</span>!<br>
+        Deposite <span class="font-bold">R$ 10</span> e receba <span class="font-bold text-green-400">R$ 20</span>.<br>
+        Ou deposite <span class="font-bold">R$ 20</span> e receba <span class="font-bold text-green-400">R$ 40</span>.
+      </p>
+      <button
+        class="mt-5 bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-5 py-2 rounded shadow"
+        @click="showBonus=false"
+      >OK</button>
+    </div>
+  </div>
+
+  <!-- Camada do confete -->
+  <div id="confetti" aria-hidden="true"></div>
 
 </body>
 </html>
