@@ -68,6 +68,9 @@
   <script defer src="https://unpkg.com/alpinejs"></script>
 
   <style>
+    /* 👇 bloqueia qualquer scroll lateral causado por brilhos/efeitos */
+    html, body { max-width: 100%; overflow-x: hidden; }
+
     [x-cloak]{ display:none !important; }
 
     /* Ripple */
@@ -187,9 +190,7 @@
         showBonus = true;                 // mostra popup
         try {
           $refs.bonusSound.currentTime = 0;
-          // tenta tocar junto com o popup
           $refs.bonusSound.play().catch(()=>{
-            // fallback: toca no primeiro toque/click do usuário
             const oncePlay = () => { $refs.bonusSound.play().catch(()=>{}); document.removeEventListener('pointerdown', oncePlay, {once:true}); };
             document.addEventListener('pointerdown', oncePlay, {once:true});
           });
@@ -299,20 +300,16 @@
         <ul class="space-y-1"><li>Suporte online</li></ul>
       </div>
     </div>
-    <div class="max-w-6xl mx-auto px-4 mt-6 text-xs text-gray-400">
-      <p>
-        O grupo é a empresa de operação de cassino online mais famosa do mundo e oferece entretenimento emocionante e divertido com dealers ao vivo incluindo cidade, jogos de mesa, eletrônicos, pesca, loteria, esportes, etc. 
-        Group é autorizado e regulamentado pelo Governo de Curaçao e opera de acordo com a licença número Antillephone emitida para 8048/JAZ. 
-        O grupo passou por todas as auditorias em conformidade e está legalmente autorizado a operar todos os jogos de oportunidade e apostas.
-      </p>
+
+    <!-- Logos padronizados -->
+    <div class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-4 sm:grid-cols-5 gap-4 place-items-center">
+      <img src="jdb.png"   alt="JDB"        class="h-8 sm:h-10 w-auto object-contain max-w-full" />
+      <img src="jili.png"  alt="JILI"       class="h-8 sm:h-10 w-auto object-contain max-w-full" />
+      <img src="pg.png" alt="PGSoft"    class="h-8 sm:h-10 w-auto object-contain max-w-full" />
+      <img src="gamemania.png" alt="GameMania" class="h-8 sm:h-10 w-auto object-contain max-w-full" />
+      <img src="pix.png"   alt="PIX"        class="h-8 sm:h-10 w-auto object-contain max-w-full" />
     </div>
-    <div class="flex justify-center items-center gap-6 mt-6">
-      <img src="jdb.png" alt="JDB" class="h-8" />
-      <img src="jili.png" alt="JILI" class="h-8" />
-      <img src="pg.png" alt="PGSoft" class="h-8" />
-      <img src="gamemania.png" alt="GameMania" class="h-8" />
-      <img src="pix.png" alt="PIX" class="h-8" />
-    </div>
+
     <p class="text-center text-gray-500 mt-6">© 2020–2025. Todos os direitos reservados.</p>
     <button onclick="window.scrollTo({top:0,behavior:'smooth'})" class="fixed bottom-24 right-4 bg-yellow-500 hover:bg-yellow-400 text-black p-3 rounded-full shadow-lg">⬆</button>
   </footer>
@@ -338,4 +335,3 @@
 
 </body>
 </html>
-
