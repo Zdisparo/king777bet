@@ -5,6 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Home - KING999</title>
 
+  <!-- Meta Pixel Code -->
+  <script>
+    !function(f,b,e,v,n,t,s){
+      if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;
+      s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)
+    }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1143296044430858');
+    fbq('track', 'PageView');
+    fbq('track', 'ViewContent', {content_name: 'Home', content_category: 'KING999'});
+  </script>
+  <noscript>
+    <img height="1" width="1" style="display:none"
+         src="https://www.facebook.com/tr?id=1143296044430858&ev=PageView&noscript=1"/>
+  </noscript>
+  <!-- /Meta Pixel Code -->
+
   <!-- Estado base disponível antes do Alpine -->
   <script>
     // Estado inicial
@@ -23,9 +42,7 @@
         20:  "https://app.pushinpay.com.br/service/pay/9DCD3A10-C4B5-4619-97B3-089F440CFB42",
         50:  "https://app.pushinpay.com.br/service/pay/9DCD37C0-F2F3-4E1C-B4FC-3246FB223D24",
         100: "https://app.pushinpay.com.br/service/pay/9DCD373C-1CC5-46D9-A995-F0A5169B76F0",
-        200: "",   // bloqueado por nível/limite atual
-        500: "",   // bloqueado por nível/limite atual
-        1000:""    // bloqueado por nível/limite atual
+        200: "", 500: "", 1000: ""
       },
 
       /* Toast de aviso (nível insuficiente) */
@@ -208,7 +225,7 @@
     <h1 class="text-xl font-bold text-yellow-400"><img src="logo.png" alt="Logo" class="h-12 w-auto"></h1>
     <div class="flex items-center gap-2">
       <span class="bg-green-600 px-2 py-1 rounded text-xs">R$ 0,00</span>
-      <button 
+      <button id="btn-deposito"
         @click="document.getElementById('sound-click').play(); showDeposit = true"
         class="attention-pulse ripple bg-yellow-300 hover:bg-yellow-400 text-black px-4 py-2 rounded font-semibold"
         @mousedown="$el.classList.add('clicked'); setTimeout(()=> $el.classList.remove('clicked'), 600)"
@@ -335,7 +352,6 @@
     <a href="home.html" class="flex flex-col items-center text-yellow-400"><span class="text-lg leading-none">🏠</span><span>Início</span></a>
     <a href="promocao.html" class="flex flex-col items-center"><span class="text-lg leading-none">🎁</span><span>Promoção</span></a>
     <a href="agente.html" class="flex flex-col items-center"><span class="text-lg leading-none">👤</span><span>Agente</span></a>
-    <!-- Aqui trocamos o rótulo para 'Saques' mantendo o link para deposito.html -->
     <a href="deposito.html" class="flex flex-col items-center"><span class="text-lg leading-none">💰</span><span>Saques</span></a>
     <a href="perfil.html" class="flex flex-col items-center"><span class="text-lg leading-none">⚙</span><span>Perfil</span></a>
   </nav>
@@ -387,6 +403,18 @@
 
   <!-- Camada do confete -->
   <div id="confetti" aria-hidden="true"></div>
+
+  <!-- Pixel: Lead no clique do botão Depósito -->
+  <script>
+    (function(){
+      const btn = document.getElementById('btn-deposito');
+      if(btn){
+        btn.addEventListener('click', function(){
+          if (window.fbq) fbq('track','Lead', {source: 'header_deposito'});
+        });
+      }
+    })();
+  </script>
 
   <!-- Parallax do banner -->
   <script>
