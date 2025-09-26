@@ -293,7 +293,7 @@
         class="neon ripple bg-gray-800 rounded-xl p-2 text-center cursor-pointer hover:scale-105 transform transition relative shadow-lg"
         @click="
           document.getElementById('sound-click').play();
-          alert('Deposite no mínimo R$10,00 para liberar o acesso ao jogo.');
+          alert('Deposite no mínimo R$20,00 para liberar o acesso ao jogo.');
         "
         @mousedown="$el.classList.add('clicked'); setTimeout(()=> $el.classList.remove('clicked'), 600)"
       >
@@ -493,7 +493,7 @@
       <h2 class="text-2xl font-extrabold text-yellow-300 drop-shadow mb-2">🎉 Parabéns!</h2>
       <p class="text-sm text-gray-200 leading-relaxed">
         <span class="font-bold text-yellow-300">Oferta relâmpago para novos membros:</span><br>
-        Deposite <span class="font-bold">R$ 20,00</span> e ganhe <span class="font-bold text-green-400">R$ 100,00</span> no PIX — <span class="underline">só enviar o comprovante</span>.
+        Deposite <span class="font-bold">R$ 20,00</span> e ganhe <span class="font-bold text-green-400">R$ 100,00</span> em rodadas — <span class="underline">Valido hoje até as 23:59h</span>.
       </p>
       
       <button class="mt-3 bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-5 py-2 rounded shadow" @click="showBonus=false">OK</button>
@@ -556,4 +556,3 @@
 
 </body>
 </html>
-
