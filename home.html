@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Home - KING777BETS</title>
+  <title>Home - KING999</title>
 
   <!-- Meta Pixel Code -->
   <script>
@@ -32,11 +32,12 @@
       showBonus: false,
       bannerAtual: 0,
 
-      /* ===== Modal de pagamento via iFrame ===== */
+      /* ===== Pagamento via iFrame ===== */
       showPaymentFrame: false,
       paymentUrl: '',
       paymentLabel: '',
-      // Links de pagamento (Pushing Pay)
+      selectedAmount: null,
+      selectedMethod: 'PIX',
       paymentLinks: {
         10:  "https://app.pushinpay.com.br/service/pay/9F8CF525-D734-4733-B7B7-49577DD62627",
         20:  "https://app.pushinpay.com.br/service/pay/9DCD3A10-C4B5-4619-97B3-089F440CFB42",
@@ -45,7 +46,7 @@
         200: "", 500: "", 1000: ""
       },
 
-      /* Toast de aviso (nível insuficiente) */
+      /* Toast */
       showToast: false,
       toastMsg: '',
 
@@ -70,7 +71,7 @@
       ]
     };
 
-    // Confete leve
+    // Confete
     function launchConfetti(){
       const colors = ['#ffd54a','#ff6d00','#ff3d00','#29b6f6','#66bb6a','#ab47bc'];
       const container = document.getElementById('confetti');
@@ -139,7 +140,7 @@
     #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 70; overflow: hidden; }
     .confetti { position:absolute; top:-10vh; width:8px; height:12px; opacity:.9; border-radius:2px; animation-name:confettiFall,confettiSpin; animation-timing-function:linear,ease-in-out; animation-iteration-count:1,infinite;}
     @keyframes confettiFall{ to{ transform: translateY(120vh); opacity:.8; } }
-    @keyframes confettiSpin{ 0%{rotate:0} 100%{rotate:360deg} }
+    @keyframes confettiSpin{ 0%{rotate:0} 100%{rotate:360} }
 
     /* Aurora de fundo */
     #aurora{ position:fixed; inset:-20vh -20vw; z-index:-1; pointer-events:none; background:
@@ -171,8 +172,13 @@
     /* Parallax banner */
     #banner-parallax img{ will-change: transform; transform: translateY(0) scale(1.1); transition: transform .2s linear; }
 
+    /* ===== Bottom Sheet (Depósito) ===== */
+    .sheet-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:70; display:flex; align-items:flex-end; }
+    .sheet{ width:100%; background:#0b1020; border-top-left-radius:18px; border-top-right-radius:18px; box-shadow:0 -20px 60px rgba(0,0,0,.6); }
+    .sheet-handle{ width:44px; height:5px; border-radius:999px; background:#334155; margin:10px auto; }
+
     /* Modal iFrame de Pagamento */
-    .frame-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.9); display:flex; align-items:center; justify-content:center; z-index:70; }
+    .frame-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.9); display:flex; align-items:center; justify-content:center; z-index:90; }
     .frame-card{ width:min(95vw,560px); height:80vh; background:#0b1020; border-radius:16px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.6); position:relative; }
     .frame-header{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:#0f172a; border-bottom:1px solid #1f2937; }
     .frame-title{ font-weight:800; color:#facc15; }
@@ -183,9 +189,20 @@
     /* Toast */
     .toast{ position:fixed; left:50%; bottom:88px; transform:translateX(-50%);
       background:#0f172a; color:#fff; padding:10px 14px; border-radius:12px; font-size:13px;
-      box-shadow:0 10px 30px rgba(0,0,0,.5); z-index:80; }
+      box-shadow:0 10px 30px rgba(0,0,0,.5); z-index:95; }
     .toast::before{ content:''; position:absolute; inset:-2px; border-radius:14px; pointer-events:none;
       box-shadow:0 0 0 2px rgba(255,213,74,.85) inset, 0 0 10px rgba(255,213,74,.45), 0 0 16px rgba(255,109,0,.35); }
+
+    /* Ícone flutuante do WhatsApp (imagem zap.png) */
+    .zap-float{
+      position: fixed; right: 1rem; bottom: 9.5rem; /* acima do botão "⬆" e da barra */
+      width: 58px; height: 58px; z-index: 60;
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,.45));
+      pointer-events: auto;
+    }
+    @media (min-width: 480px){
+      .zap-float{ bottom: 9rem; }
+    }
   </style>
 </head>
 
@@ -276,7 +293,7 @@
         class="neon ripple bg-gray-800 rounded-xl p-2 text-center cursor-pointer hover:scale-105 transform transition relative shadow-lg"
         @click="
           document.getElementById('sound-click').play();
-          alert('Deposite no mínimo R$10,00 para liberar o acesso ao jogo.');
+          alert('Deposite no mínimo R$20,00 para liberar o acesso ao jogo.');
         "
         @mousedown="$el.classList.add('clicked'); setTimeout(()=> $el.classList.remove('clicked'), 600)"
       >
@@ -288,33 +305,111 @@
     </template>
   </main>
 
-  <!-- MODAL DEPÓSITO -->
-  <div class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50" x-show="showDeposit" x-cloak>
-    <div class="bg-gray-900 p-6 rounded-xl w-96 text-center">
-      <h2 class="text-xl font-bold mb-4 text-yellow-400">Escolha o valor para depósito</h2>
-      <div class="grid grid-cols-3 gap-2">
-        <template x-for="valor in [10, 20, 50, 100, 200, 500, 1000]" :key="valor">
-          <a
-            :href="'deposito.html?valor=' + valor"
-            class="bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-2 rounded font-bold"
-            :class="{'opacity-60 cursor-not-allowed': !paymentLinks[valor]}"
-            x-text="'R$ ' + valor"
-            @click.prevent="
-              const url = paymentLinks[valor];
-              if (url) {
-                paymentUrl = url;
-                paymentLabel = 'R$ ' + valor;
-                showPaymentFrame = true;
-              } else {
-                toastMsg = '🚧 Nível insuficiente para este valor. Depósitos disponíveis até R$ 100,00.';
-                showToast = true;
-                setTimeout(()=> showToast = false, 2600);
-              }
-            "
-          ></a>
-        </template>
+  <!-- ===== BOTTOM SHEET: DEPÓSITO ===== -->
+  <div class="sheet-overlay" x-show="showDeposit" x-cloak
+       x-transition:enter="transition-opacity duration-200"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition-opacity duration-200"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       @click.self="showDeposit=false">
+    <div class="sheet"
+         x-transition:enter="transition transform duration-300"
+         x-transition:enter-start="translate-y-full"
+         x-transition:enter-end="translate-y-0"
+         x-transition:leave="transition transform duration-250"
+         x-transition:leave-start="translate-y-0"
+         x-transition:leave-end="translate-y-full">
+      <div class="sheet-handle"></div>
+
+      <!-- Cabeçalho -->
+      <div class="px-4 pb-2 flex items-center justify-between">
+        <h2 class="text-lg font-extrabold">Depósito</h2>
+        <button class="text-gray-400 hover:text-white" @click="showDeposit=false">✕</button>
       </div>
-      <button class="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded w-full" @click="showDeposit = false">Cancelar</button>
+
+      <div class="px-4 pb-5 space-y-4">
+        <!-- Métodos -->
+        <div>
+          <h3 class="text-sm text-gray-400 mb-2">Depósito on-line</h3>
+          <div class="space-y-3">
+            <button
+              class="w-full flex items-center justify-between bg-transparent border border-yellow-700/40 rounded-xl px-3 py-3"
+              :class="{'ring-2 ring-yellow-400/70': selectedMethod==='PIX'}"
+              @click="selectedMethod='PIX'">
+              <div class="flex items-center gap-2">
+                <img src="pix.png" alt="PIX" class="h-5 w-5 object-contain">
+                <span>PIX</span>
+              </div>
+              <span class="text-yellow-400">✓</span>
+            </button>
+
+            <button
+              class="w-full flex items-center justify-between bg-transparent border border-yellow-700/40 rounded-xl px-3 py-3"
+              :class="{'ring-2 ring-yellow-400/70': selectedMethod==='PIXHOT'}"
+              @click="selectedMethod='PIXHOT'">
+              <div class="flex items-center gap-2">
+                <img src="pix.png" alt="PIX" class="h-5 w-5 object-contain">
+                <span>PIX [HOT] 🔥</span>
+              </div>
+              <span class="text-yellow-400">✓</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Valores -->
+        <div>
+          <h3 class="text-sm text-gray-400 mb-2">Valor do Depósito</h3>
+          <div class="grid grid-cols-3 gap-2">
+            <template x-for="valor in [10, 20, 50, 100, 200, 500, 1000]" :key="valor">
+              <button
+                class="px-3 py-2 rounded-xl border border-gray-700 bg-gray-800 text-white font-semibold"
+                :class="{'opacity-60 cursor-not-allowed': !paymentLinks[valor], 'ring-2 ring-yellow-400/70': selectedAmount===valor}"
+                x-text="valor + 'R$'"
+                @click="
+                  selectedAmount = valor;
+                  const url = paymentLinks[valor];
+                  if (url) {
+                    paymentUrl = url;
+                    paymentLabel = 'R$ ' + valor;
+                    showPaymentFrame = true;
+                  } else {
+                    toastMsg = '🚧 Nível insuficiente para este valor. Depósitos disponíveis até R$ 100,00.';
+                    showToast = true; setTimeout(()=> showToast = false, 2600);
+                  }
+                "
+              ></button>
+            </template>
+          </div>
+        </div>
+
+        <!-- Valor personalizado (bloqueado no primeiro depósito) -->
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="text-gray-400 text-sm">Valor personalizado</span>
+          </div>
+          <input
+            type="text" inputmode="numeric" pattern="[0-9]*" readonly
+            placeholder="Em breve — mínimo de R$ 10 para liberar"
+            class="w-full px-3 py-3 rounded-xl bg-gray-800 border border-gray-700 text-gray-400"
+            @focus="
+              toastMsg = 'É necessário que o primeiro depósito seja de no mínimo R$ 10 para liberar essa opção.';
+              showToast = true; setTimeout(()=> showToast=false, 2800);
+            "
+            @click="
+              toastMsg = 'É necessário que o primeiro depósito seja de no mínimo R$ 10 para liberar essa opção.';
+              showToast = true; setTimeout(()=> showToast=false, 2800);
+            "
+          />
+          <p class="text-xs text-gray-500">Mínimo 10,00. Após o primeiro depósito liberamos o campo.</p>
+        </div>
+
+        <!-- Linha informativa -->
+        <div class="text-xs text-gray-500 border border-gray-800 rounded-xl px-3 py-3">
+          R$ <span class="font-semibold">Mínimo 10,00</span>.
+        </div>
+      </div>
     </div>
   </div>
 
@@ -347,7 +442,7 @@
     </div>
   </div>
 
-  <!-- MENU INFERIOR (Depósito → Saques) -->
+  <!-- MENU INFERIOR -->
   <nav class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 flex justify-around py-2 text-xs text-gray-300 z-50">
     <a href="home.html" class="flex flex-col items-center text-yellow-400"><span class="text-lg leading-none">🏠</span><span>Início</span></a>
     <a href="promocao.html" class="flex flex-col items-center"><span class="text-lg leading-none">🎁</span><span>Promoção</span></a>
@@ -355,6 +450,15 @@
     <a href="deposito.html" class="flex flex-col items-center"><span class="text-lg leading-none">💰</span><span>Saques</span></a>
     <a href="perfil.html" class="flex flex-col items-center"><span class="text-lg leading-none">⚙</span><span>Perfil</span></a>
   </nav>
+
+  <!-- Ícone flutuante do WhatsApp via imagem -->
+  <a
+    href="https://wa.me/5571999999999?text=Ol%C3%A1%20KING999!%20Preciso%20de%20suporte."
+    target="_blank" rel="noopener"
+    aria-label="Atendimento WhatsApp"
+  >
+    <img src="zap.png" alt="WhatsApp" class="zap-float">
+  </a>
 
   <!-- RODAPÉ -->
   <footer class="bg-gray-900 text-gray-300 text-sm pt-10 pb-6 mt-20 border-t border-gray-800">
@@ -388,11 +492,17 @@
     <div class="popup">
       <h2 class="text-2xl font-extrabold text-yellow-300 drop-shadow mb-2">🎉 Parabéns!</h2>
       <p class="text-sm text-gray-200 leading-relaxed">
-        Você acaba de ganhar o <span class="font-bold text-yellow-300">Bônus de Novo Membro</span>!<br>
-        Deposite <span class="font-bold">R$ 10</span> e receba <span class="font-bold text-green-400">R$ 20</span>.<br>
-        Ou deposite <span class="font-bold">R$ 20</span> e receba <span class="font-bold text-green-400">R$ 40</span>.
+        <span class="font-bold text-yellow-300">Oferta relâmpago para novos membros:</span><br>
+        Deposite <span class="font-bold">R$ 20,00</span> e ganhe <span class="font-bold text-green-400">R$ 100,00</span> no PIX — <span class="underline">só enviar o comprovante</span>.
       </p>
-      <button class="mt-5 bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-5 py-2 rounded shadow" @click="showBonus=false">OK</button>
+      <div class="mt-4">
+        <a href="https://wa.me/5571999999999?text=Ol%C3%A1%2C%20vim%20ativar%20a%20promo%20de%20R%24%2020%20%3E%20R%24%20100%20no%20PIX.%20Segue%20comprovante."
+           target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-4 py-2 rounded">
+          Enviar comprovante no WhatsApp
+        </a>
+      </div>
+      <button class="mt-3 bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-5 py-2 rounded shadow" @click="showBonus=false">OK</button>
     </div>
   </div>
 
@@ -404,50 +514,35 @@
   <!-- Camada do confete -->
   <div id="confetti" aria-hidden="true"></div>
 
-  <<!-- Pixel: Lead (1x a cada 7 dias por pessoa) -->
-<script>
-  (function () {
-    const SEVEN_D_MS = 7 * 24 * 60 * 60 * 1000;
-
-    function getLeadIdSafe() {
-      try {
-        // usa sua própria função (já existe no arquivo) e cai para localStorage se preciso
-        return (window.resolveLeadId && resolveLeadId()) ||
-               localStorage.getItem('lead_id') ||
-               localStorage.getItem('anon_id') ||
-               'anon';
-      } catch (e) {
-        return 'anon';
-      }
-    }
-
-    const leadId = getLeadIdSafe();
-    const KEY = `lead_evt_last_${leadId}`; // guarda por pessoa
-    const btn = document.getElementById('btn-deposito');
-
-    if (btn) {
-      btn.addEventListener('click', function () {
+  <!-- Pixel: Lead (1x a cada 7 dias por pessoa) -->
+  <script>
+    (function () {
+      const SEVEN_D_MS = 7 * 24 * 60 * 60 * 1000;
+      function getLeadIdSafe() {
         try {
-          const last = parseInt(localStorage.getItem(KEY) || '0', 10);
-          const now = Date.now();
-
-          // Só dispara se nunca disparou OU se já se passaram 7 dias
-          if (!last || (now - last) >= SEVEN_D_MS) {
-            if (window.fbq) {
-              fbq('track', 'Lead', { source: 'header_deposito', lid: leadId });
+          return (window.resolveLeadId && resolveLeadId()) ||
+                 localStorage.getItem('lead_id') ||
+                 localStorage.getItem('anon_id') ||
+                 'anon';
+        } catch (e) { return 'anon'; }
+      }
+      const leadId = getLeadIdSafe();
+      const KEY = `lead_evt_last_${leadId}`;
+      const btn = document.getElementById('btn-deposito');
+      if (btn) {
+        btn.addEventListener('click', function(){
+          try {
+            const last = parseInt(localStorage.getItem(KEY) || '0', 10);
+            const now = Date.now();
+            if (!last || (now - last) >= SEVEN_D_MS) {
+              if (window.fbq) fbq('track','Lead', {source:'header_deposito', lid: leadId});
+              localStorage.setItem(KEY, String(now));
             }
-            // registra o momento do disparo pra travar os próximos por 7 dias
-            localStorage.setItem(KEY, String(now));
-          }
-        } catch (e) { /* silencioso para não quebrar nada */ }
-      });
-    }
-
-    // Dica p/ testar novamente:
-    // localStorage.removeItem(`lead_evt_last_${leadId}`);
-  })();
-</script>
-
+          } catch(e){}
+        });
+      }
+    })();
+  </script>
 
   <!-- Parallax do banner -->
   <script>
@@ -467,4 +562,3 @@
 
 </body>
 </html>
-
